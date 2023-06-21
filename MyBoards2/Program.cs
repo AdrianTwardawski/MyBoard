@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using MyBoards2.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +17,14 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+
+using var scope = app.Services.CreateScope();
+var dbContext = scope.ServiceProvider.GetService<MyBoardsContext>();
+var pendingMigrations = dbContext.Database.GetPendingMigrations();
+if (pendingMigrations.Any())
+{
+    dbContext.Database.Migrate();
 }
 
 app.Run();
