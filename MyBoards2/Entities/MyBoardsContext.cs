@@ -28,6 +28,9 @@ namespace MyBoards2.Entities
                 eb.Property(x => x.Activity).HasMaxLength(200);
                 eb.Property(x => x.RemainingWork).HasPrecision(14,2);
                 eb.Property(x => x.Priority).HasDefaultValue(1);
+                eb.HasMany(w => w.Comments)
+                    .WithOne(c => c.WorkItem)
+                    .HasForeignKey(c => c.WorkItemId);
             });
 
             modelBuilder.Entity<Comment>(eb =>
