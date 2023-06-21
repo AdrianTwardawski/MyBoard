@@ -15,18 +15,29 @@ namespace MyBoards2.Entities
         public DbSet<Tag> Tags{ get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Address> Addresses { get; set; }
+        public DbSet<WorkItemState> WorkItemStates { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<WorkItemState>(eb =>
+            {
+                eb.Property(x => x.Value)
+                    .IsRequired()
+                    .HasMaxLength(50);
+            });
+
             modelBuilder.Entity<WorkItem>(eb =>
             {
-                eb.Property(x => x.State).IsRequired();
+                eb.HasOne(w => w.State)
+                    .WithMany()
+                    .HasForeignKey(w => w.StateId);
+
                 eb.Property(x => x.Area).HasColumnType("varchar(200)");
                 eb.Property(x => x.IterationPath).HasColumnName("Iteration_Path");
                 eb.Property(x => x.Efford).HasColumnType("decimal(5,2)");
                 eb.Property(x => x.EndDate).HasPrecision(3);
                 eb.Property(x => x.Activity).HasMaxLength(200);
-                eb.Property(x => x.RemainingWork).HasPrecision(14,2);
+                eb.Property(x => x.RemainingWork).HasPrecision(14, 2);
                 eb.Property(x => x.Priority).HasDefaultValue(1);
                 eb.HasMany(w => w.Comments)
                     .WithOne(c => c.WorkItem)
@@ -54,7 +65,7 @@ namespace MyBoards2.Entities
                         wit.Property(x => x.PublicationDate).HasDefaultValueSql("getutcdate()");
                     });
             });
-
+       
             modelBuilder.Entity<Comment>(eb =>
             {
                 eb.Property(x => x.CreatedDate).HasDefaultValueSql("getutcdate()");
@@ -65,6 +76,7 @@ namespace MyBoards2.Entities
                 .HasOne(u => u.Address)
                 .WithOne(u => u.User)
                 .HasForeignKey<Address>(a => a.UserId);
+                     
         }
     }
 }

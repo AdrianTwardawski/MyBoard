@@ -7,7 +7,8 @@ namespace MyBoards2.Entities
     public class WorkItem
     {
         public int Id { get; set; }
-        public string State  { get; set; }
+        public WorkItemState State { get; set; }
+        public int StateId { get; set; }
         public string Area { get; set; }
         public string IterationPath { get; set; }
         public int Priority { get; set; }
