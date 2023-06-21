@@ -18,8 +18,22 @@ namespace MyBoards2.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //modelBuilder.Entity<User>()
-                //.HasKey(x => new { x.Email, x.LastName });
+            modelBuilder.Entity<WorkItem>()
+                .Property(x => x.State)
+                .IsRequired();
+
+            modelBuilder.Entity<WorkItem>()
+                .Property(x => x.Area)
+                .HasColumnType("varchar(200)");
+
+            modelBuilder.Entity<WorkItem>(eb =>
+            {
+                eb.Property(x => x.IterationPath).HasColumnName("Iteration_Path");
+                eb.Property(x => x.Efford).HasColumnType("decimal(5,2)");
+                eb.Property(x => x.EndDate).HasPrecision(3);
+                eb.Property(x => x.Activity).HasMaxLength(200);
+                eb.Property(x => x.RemainingWork).HasPrecision(14,2);
+            });
         }
 
         //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
