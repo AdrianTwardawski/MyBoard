@@ -26,7 +26,7 @@ namespace MyBoards2.Entities
             {
                 eb.Property(x => x.Value)
                     .IsRequired()
-                    .HasMaxLength(50);
+                    .HasMaxLength(60);
             });
 
             modelBuilder.Entity<Epic>()
