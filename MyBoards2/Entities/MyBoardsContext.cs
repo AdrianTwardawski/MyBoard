@@ -18,28 +18,28 @@ namespace MyBoards2.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<WorkItem>()
-                .Property(x => x.State)
-                .IsRequired();
-
-            modelBuilder.Entity<WorkItem>()
-                .Property(x => x.Area)
-                .HasColumnType("varchar(200)");
-
             modelBuilder.Entity<WorkItem>(eb =>
             {
+                eb.Property(x => x.State).IsRequired();
+                eb.Property(x => x.Area).HasColumnType("varchar(200)");
                 eb.Property(x => x.IterationPath).HasColumnName("Iteration_Path");
                 eb.Property(x => x.Efford).HasColumnType("decimal(5,2)");
                 eb.Property(x => x.EndDate).HasPrecision(3);
                 eb.Property(x => x.Activity).HasMaxLength(200);
                 eb.Property(x => x.RemainingWork).HasPrecision(14,2);
+                eb.Property(x => x.Priority).HasDefaultValue(1);
             });
-        }
 
-        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        //{
-        //    optionsBuilder.
-        //        UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=MyBoards2Db;Trusted_Connection=True;");
-        // }
+            modelBuilder.Entity<Comment>(eb =>
+            {
+                eb.Property(x => x.CreatedDate).HasDefaultValueSql("getutcdate()");
+                eb.Property(x => x.UpdatedDate).ValueGeneratedOnUpdate();
+            });
+
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Address)
+                .WithOne(u => u.User)
+                .HasForeignKey<Address>(a => a.UserId);
+        }
     }
 }
