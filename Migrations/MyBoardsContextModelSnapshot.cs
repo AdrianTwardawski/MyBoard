@@ -92,6 +92,9 @@ namespace MyBoards2.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<string>("Category")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
 
@@ -174,6 +177,23 @@ namespace MyBoards2.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("WorkItemStates");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Value = "To Do"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Value = "Doing"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Value = "Done"
+                        });
                 });
 
             modelBuilder.Entity("MyBoards2.Entities.WorkItemTag", b =>
