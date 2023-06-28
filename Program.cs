@@ -57,5 +57,53 @@ if (!users.Any())
     dbContext.SaveChanges();
 }
 
+app.MapGet("tags", (MyBoardsContext db) =>
+{
+    var tags = db.Tags.ToList();
+    return tags;
+});
+
+app.MapGet("epicUser", (MyBoardsContext db) =>
+{
+    var epic = db.Epics.First();
+    var user = db.Users.First(u => u.FullName == "User One");
+    return new {epic, user};
+});
+
+app.MapGet("toDoWorkItems", (MyBoardsContext db) =>
+{
+    var toDoWorkItems = db.WorkItems.Where(w => w.StateId == 1).ToList();
+    return new { toDoWorkItems };
+});
+
+app.MapGet("newComments", async (MyBoardsContext db) =>
+{
+    var newComments = await db
+        .Comments
+        .Where(w => w.CreatedDate > new DateTime(2022, 7, 23))
+        .ToListAsync();
+    return newComments;
+});
+
+app.MapGet("top5NewestComments", async (MyBoardsContext db) =>
+{
+    var top5NewestComments = await db
+        .Comments
+        .OrderByDescending(w => w.CreatedDate)
+        .Take(5)
+        .ToListAsync();
+    return top5NewestComments;
+});
+
+app.MapGet("statesCount", async (MyBoardsContext db) =>
+{
+    var statesCount = await db
+        .WorkItems
+        .GroupBy(w => w.StateId)
+        .Select(g => new { stateId = g.Key, count = g.Count() })
+        .ToListAsync();
+    return statesCount;
+});
+
 app.Run();
 
