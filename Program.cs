@@ -256,4 +256,30 @@ app.MapGet("relatedData2", async (MyBoardsContext db) =>
     return user;
 });
 
+app.MapDelete("deleteWorkItem", async(MyBoardsContext db) =>
+{
+
+    var workItemTags = await db.WorkItemTag.Where(c => c.WorkItemId == 12).ToListAsync();
+    db.WorkItemTag.RemoveRange(workItemTags);
+
+    var workItem = await db.WorkItems.FirstAsync(c => c.Id == 16);
+
+    db.RemoveRange(workItem);
+
+    await db.SaveChangesAsync();    
+});
+
+app.MapDelete("deleteUser", async (MyBoardsContext db) =>
+{
+
+    var user = await db.Users
+        .FirstAsync(u => u.Id == Guid.Parse("DC231ACF-AD3C-445D-CC08-08DA10AB0E61"));
+
+    var userComments = db.Comments.Where(c => c.AuthorId == user.Id).ToList();
+    db.RemoveRange(userComments);
+    await db.SaveChangesAsync();
+
+    db.Remove(user);
+    await db.SaveChangesAsync();
+});
 app.Run();
