@@ -1,10 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http.Json;
+using Microsoft.EntityFrameworkCore;
 using MyBoards2.Entities;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Ignoring looped references
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
 
 builder.Services.AddDbContext<MyBoardsContext>(
     option => option.UseSqlServer(builder.Configuration.GetConnectionString("MyBoardsConnectionString"))
@@ -224,6 +232,26 @@ app.MapPost("createUser", async (MyBoardsContext db) =>
 
     db.Users.Add(user);
     await db.SaveChangesAsync();
+
+    return user;
+});
+
+app.MapGet("relatedData", async (MyBoardsContext db) =>
+{
+    var user = await db.Users
+        .FirstAsync(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
+    var userComments = await db.Comments.Where(c => c.AuthorId == user.Id).ToListAsync();
+
+    return user;
+});
+
+app.MapGet("relatedData2", async (MyBoardsContext db) =>
+{
+    var user = await db.Users
+        .Include(u => u.Comments)
+        .ThenInclude(c => c.WorkItem)
+        .Include(u => u.Address)
+        .FirstAsync(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
 
     return user;
 });
