@@ -105,5 +105,30 @@ app.MapGet("statesCount", async (MyBoardsContext db) =>
     return statesCount;
 });
 
+app.MapGet("epics", async (MyBoardsContext db) =>
+{
+    var selectedEpics = await db
+        .Epics
+        .Where(w => w.StateId == 4)
+        .OrderBy(w => w.Priority)
+        .ToListAsync();
+    return selectedEpics;
+});
+
+app.MapGet("topAuthorByComments", async (MyBoardsContext db) =>
+{
+    var authorsCommentCounts = await db
+        .Comments
+        .GroupBy(c => c.AuthorId)
+        .Select(g => new { g.Key, Count = g.Count() })
+        .ToListAsync();
+
+    var topAuthor = authorsCommentCounts.First(a => a.Count == authorsCommentCounts.Max(acc => acc.Count));
+
+    var userDetails = db.Users.First(u => u.Id == topAuthor.Key);
+
+    return new { userDetails, commentCount = topAuthor.Count};
+});
+
 app.Run();
 
