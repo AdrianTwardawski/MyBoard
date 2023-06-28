@@ -130,5 +130,102 @@ app.MapGet("topAuthorByComments", async (MyBoardsContext db) =>
     return new { userDetails, commentCount = topAuthor.Count};
 });
 
-app.Run();
+app.MapPost("updateEpic", async (MyBoardsContext db) =>
+{
+    Epic epic = await db.Epics.FirstAsync(epic => epic.Id == 1);
 
+    epic.Area = "Updated area";
+    epic.Priority = 1;
+    epic.StartDate = DateTime.Now;
+
+    await db.SaveChangesAsync();
+
+    return epic;
+});
+
+app.MapPost("updateEpic2", async (MyBoardsContext db) =>
+{
+    Epic epic = await db.Epics.FirstAsync(epic => epic.Id == 2);
+
+    var onHoldState = await db.WorkItemStates.FirstAsync(a => a.Value == "On Hold");
+
+    epic.StateId = onHoldState.Id;
+
+    await db.SaveChangesAsync();
+
+    return epic;
+});
+
+app.MapPost("updateEpic3", async (MyBoardsContext db) =>
+{
+    Epic epic = await db.Epics.FirstAsync(epic => epic.Id == 3);
+
+    var rejectedState = await db.WorkItemStates.FirstAsync(a => a.Value == "Rejected");
+
+    epic.State = rejectedState;
+
+    await db.SaveChangesAsync();
+
+    return epic;
+});
+
+app.MapPost("create", async(MyBoardsContext db) =>
+{
+    Tag tag = new Tag()
+    {
+        Value = "EF"
+    };
+
+    // await db.AddAsync(tag);
+    await db.Tags.AddAsync(tag);
+    await db.SaveChangesAsync();
+
+    return tag;
+});
+
+app.MapPost("createMultiple", async (MyBoardsContext db) =>
+{
+    Tag mvcTag = new Tag()
+    {
+        Value = "MVC"
+    };
+
+    Tag aspTag = new Tag()
+    {
+        Value = "ASP"
+    };
+
+    //await db.Tags.AddRangeAsync(mvcTag, aspTag);
+
+    var tags = new List<Tag>() { mvcTag, aspTag };
+    await db.Tags.AddRangeAsync(tags);
+
+    await db.SaveChangesAsync();
+
+    return tags;
+});
+
+app.MapPost("createUser", async (MyBoardsContext db) =>
+{
+    Address address = new Address()
+    {
+        Id = Guid.Parse("b323dd7c-776a-4cf6-a92a-12df154b4a2c"),
+        City = "Kraków",
+        Country = "Poland",
+        Street = "Długa"
+    };
+
+    var user = new User
+    {
+        Email = "user@test.com",
+        FullName = "Test User",
+        Address = address,
+    };
+
+    db.Users.Add(user);
+    await db.SaveChangesAsync();
+
+    return user;
+});
+
+app.Run();
