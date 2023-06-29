@@ -282,4 +282,16 @@ app.MapDelete("deleteUser", async (MyBoardsContext db) =>
     db.Remove(user);
     await db.SaveChangesAsync();
 });
+
+app.MapDelete("deleteCascade", async (MyBoardsContext db) =>
+{
+
+    var user = await db.Users
+        .Include(u => u.Comments)
+        .FirstAsync(u => u.Id == Guid.Parse("7B84DC1C-597F-470F-CBEC-08DA10AB0E61"));
+
+    db.Users.Remove(user);
+    await db.SaveChangesAsync();
+});
+
 app.Run();
