@@ -359,4 +359,40 @@ app.MapGet("getWithoutTracking", async (MyBoardsContext db) =>
     return states;
 });
 
+app.MapGet("selectFromRawSQL", async (MyBoardsContext db) =>
+{
+    var states = db.WorkItemStates
+        .FromSqlRaw(@"
+            SELECT wis.Id, wis.Value
+            FROM WorkItemStates wis
+            JOIN WorkItems wi on wi.StateId = wis.Id
+            GROUP BY wis.Id, wis.Value
+            HAVING COUNT(*) > 85"
+        )
+        .ToList();
+    return states;
+});
+
+app.MapGet("selectFromRawSQLWithParamAndUpdate", async (MyBoardsContext db) =>
+{
+    var minWorkItemsCount = "85";
+
+    var states = db.WorkItemStates
+        .FromSqlInterpolated($@"
+            SELECT wis.Id, wis.Value
+            FROM WorkItemStates wis
+            JOIN WorkItems wi on wi.StateId = wis.Id
+            GROUP BY wis.Id, wis.Value
+            HAVING COUNT(*) > {minWorkItemsCount}"
+        )
+        .ToList();
+
+    db.Database.ExecuteSqlRaw(@"
+            UPDATE Comments
+            SET UpdatedDate = GETDATE()
+            WHERE AuthorId = '4EBB526D-2196-41E1-CBDA-08DA10AB0E61'"
+    );
+    return states;
+});
+
 app.Run();

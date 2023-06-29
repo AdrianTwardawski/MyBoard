@@ -29,7 +29,6 @@ namespace MyBoards2.Benchmark
             var comments = _dbContext.Comments
                 .AsNoTracking()
                 .ToList();
-            hhfsdfdklsj
             return comments.Count;
         }
     }
