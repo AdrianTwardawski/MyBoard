@@ -294,4 +294,69 @@ app.MapDelete("deleteCascade", async (MyBoardsContext db) =>
     await db.SaveChangesAsync();
 });
 
+app.MapGet("changeTracker", async (MyBoardsContext db) =>
+{
+    var user = await db.Users
+        .FirstAsync(u => u.Id == Guid.Parse("D00D8059-8977-4E5F-CBD2-08DA10AB0E61"));
+
+    var entries1 = db.ChangeTracker.Entries();
+
+    user.Email = "test@test.com";
+
+    var entries2 = db.ChangeTracker.Entries();
+
+    db.SaveChanges();
+
+    return user;
+});
+
+app.MapGet("changeTracker2", async (MyBoardsContext db) =>
+{
+    var user = await db.Users
+        .FirstAsync(u => u.Id == Guid.Parse("D00D8059-8977-4E5F-CBD2-08DA10AB0E61"));
+
+    db.Users.Remove(user);
+
+    var newUser = new User()
+    {
+        FullName = "New User"
+    };
+
+    db.Users.Add(newUser);
+
+    var entries2 = db.ChangeTracker.Entries();
+
+    db.SaveChanges();
+
+    return user;
+});
+
+app.MapGet("deleteWithChangeTracker", async (MyBoardsContext db) =>
+{
+    // optimalized delete entry (select item is not needed)
+    var workItem = new Epic()
+    {
+        Id = 2
+    };
+
+    var entry = db.Attach(workItem);
+    entry.State = EntityState.Deleted;
+
+    db.SaveChanges();
+
+    return workItem;
+});
+
+app.MapGet("getWithoutTracking", async (MyBoardsContext db) =>
+{
+    // results won't be tracking by dbContext - this action will use less memory and will have better performance
+    // its good to use it if we are sure data we want to get won't be modified
+    var states = db.WorkItemStates
+        .AsNoTracking()
+        .ToList();
+
+    var entries1 = db.ChangeTracker.Entries();
+    return states;
+});
+
 app.Run();
