@@ -395,4 +395,9 @@ app.MapGet("selectFromRawSQLWithParamAndUpdate", async (MyBoardsContext db) =>
     return states;
 });
 
+app.MapGet("viewTopAuthors", async (MyBoardsContext db) =>
+{
+    var topAuthors = db.ViewTopAuthors.ToList();
+    return topAuthors;
+});
 app.Run();
