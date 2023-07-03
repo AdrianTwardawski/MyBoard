@@ -15,7 +15,9 @@ builder.Services.Configure<JsonOptions>(options =>
 });
 
 builder.Services.AddDbContext<MyBoardsContext>(
-    option => option.UseSqlServer(builder.Configuration.GetConnectionString("MyBoardsConnectionString"))
+    option => option
+    .UseLazyLoadingProxies()
+    .UseSqlServer(builder.Configuration.GetConnectionString("MyBoardsConnectionString"))
     );
 
 var app = builder.Build();
@@ -406,4 +408,21 @@ app.MapGet("ownedTypesAddresses", async (MyBoardsContext db) =>
     var addresses = db.Addresses.Where(a => a.Coordinate.Latitude > 10);
     return addresses;
 });
+
+app.MapGet("lazyLoading", async (MyBoardsContext db) =>
+{
+    var withAddress = true;
+
+    var user = db.Users
+          .First(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
+
+    if (withAddress)
+    {
+        var result = new { FullName = user.FullName, Address = $"{user.Address.Street}{user.Address.City}" };
+        return result;
+    }
+
+    return new { FullName = user.FullName, Address = "-" };
+});
+
 app.Run();
