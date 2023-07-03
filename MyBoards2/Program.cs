@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using MyBoards2.Dto;
 using MyBoards2.Entities;
+using System.Linq.Expressions;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +18,7 @@ builder.Services.Configure<JsonOptions>(options =>
 
 builder.Services.AddDbContext<MyBoardsContext>(
     option => option
-    .UseLazyLoadingProxies()
+    //.UseLazyLoadingProxies()
     .UseSqlServer(builder.Configuration.GetConnectionString("MyBoardsConnectionString"))
     );
 
@@ -423,6 +425,50 @@ app.MapGet("lazyLoading", async (MyBoardsContext db) =>
     }
 
     return new { FullName = user.FullName, Address = "-" };
+});
+
+app.MapGet("pagination", async (MyBoardsContext db) =>
+{
+    // user input
+    var filter = "a";
+    string sortBy = "FullName"; // "FullName" "Email" null
+    bool sortByDescending = false;
+    int pageNumber = 1;
+    int pageSize = 10;
+    //
+
+    var query = db.Users
+        .Where(u => filter == null ||
+            (u.Email.ToLower().Contains(filter.ToLower()) || u.FullName.ToLower().Contains(filter.ToLower())));
+
+    var totalCount = query.Count();
+
+    // definiujemy słownik, w którym określamy po jakich kolumnach możemy sortować i w tym słowniku kluczem jest nazwa kolumny,
+    // a wartośćią jest wyrażenie, czyli expression dla typu Func typu User i typu object, który jest prawidłowym parametrem dla
+    // metody orderyBy jak i orderByDescending. Na podstawie wartości sortBy wskazujemy na tym słowniku jaką expresje
+    // chcemy przekazać do sortowania. Mając taką informacje sortujemy w dobrym kierunku.
+    if (sortBy != null)
+    {
+        var columnsSelector = new Dictionary<string, Expression<Func<User, object>>>
+        {
+            { nameof(User.Email), user => user.Email },
+            { "FullName", user => user.FullName },
+        };
+
+        Expression<Func<User, object>> sortByExpression = columnsSelector[sortBy];
+
+        query = sortByDescending
+            ? query.OrderByDescending(sortByExpression)
+            : query.OrderBy(sortByExpression);
+    }
+
+    var result = query.Skip(pageSize * (pageNumber - 1))
+                .Take(pageSize)
+                .ToList();
+
+    var pagedResult = new PagedResult<User>(result, totalCount, pageSize, pageNumber);
+
+    return pagedResult;
 });
 
 app.Run();
