@@ -400,4 +400,10 @@ app.MapGet("viewTopAuthors", async (MyBoardsContext db) =>
     var topAuthors = db.ViewTopAuthors.ToList();
     return topAuthors;
 });
+
+app.MapGet("ownedTypesAddresses", async (MyBoardsContext db) =>
+{
+    var addresses = db.Addresses.Where(a => a.Coordinate.Latitude > 10);
+    return addresses;
+});
 app.Run();
