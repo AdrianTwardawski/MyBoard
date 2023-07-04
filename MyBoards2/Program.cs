@@ -471,4 +471,5 @@ app.MapGet("pagination", async (MyBoardsContext db) =>
     return pagedResult;
 });
 
+
 app.Run();
