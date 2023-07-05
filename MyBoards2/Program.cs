@@ -471,5 +471,48 @@ app.MapGet("pagination", async (MyBoardsContext db) =>
     return pagedResult;
 });
 
+app.MapGet("selectOptimized", async (MyBoardsContext db) =>
+{
+    // less efficienct
+    var user = await db.Users
+        .Include(u => u.Address)
+        .Where(u => u.Address.Country == "Albania")
+        .ToListAsync();
+
+    return user.Select(c => c.FullName);
+
+    // more efficient
+    var users2 = await db.Users
+    .Include(u => u.Address)
+    .Where(u => u.Address.Country == "Albania")
+    .Select(c => c.FullName)
+    .ToListAsync();
+
+    return users2;
+});
+
+app.MapGet("selectOptimized2", async (MyBoardsContext db) =>
+{
+    // less efficienct
+    var users = await db.Users
+        .Include(u => u.Address)
+        .Include(u => u.Comments)
+        .Where(u => u.Address.Country == "Albania")
+        .ToListAsync();
+
+    var comments = users.SelectMany(u => u.Comments).Select(c => c.Message);
+    return comments;
+
+    // more efficient
+    var users2 = await db.Users
+        .Include(u => u.Address)
+        .Include(u => u.Comments)
+        .Where(u => u.Address.Country == "Albania")
+        .SelectMany(u => u.Comments)
+        .Select(c => c.Message)
+        .ToListAsync();
+
+    return users2;
+});
 
 app.Run();
