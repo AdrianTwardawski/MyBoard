@@ -11,6 +11,7 @@ namespace MyBoards2.Entities.Configurations
                 .WithOne(u => u.User)
                 .HasForeignKey<Address>(a => a.UserId);
 
+            // index on column Email and FullName
             builder.HasIndex(u => new { u.Email, u.FullName });
         }
     }

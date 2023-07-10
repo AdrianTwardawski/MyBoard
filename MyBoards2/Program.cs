@@ -18,7 +18,7 @@ builder.Services.Configure<JsonOptions>(options =>
 
 builder.Services.AddDbContext<MyBoardsContext>(
     option => option
-    //.UseLazyLoadingProxies()
+    .UseLazyLoadingProxies()
     .UseSqlServer(builder.Configuration.GetConnectionString("MyBoardsConnectionString"))
     );
 
@@ -513,6 +513,41 @@ app.MapGet("selectOptimized2", async (MyBoardsContext db) =>
         .ToListAsync();
 
     return users2;
+});
+
+app.MapGet("problemN+1WithLazyLoading", async (MyBoardsContext db) =>
+{
+    var users = await db.Users
+            .Where(u => u.Address.Country == "Albania")
+            //.Include(u => u.Comments) //problem n+1 solve
+            .ToListAsync();
+
+    foreach (var user in users)
+    {
+        foreach (var comments in user.Comments)
+        {
+            //Process(comment);
+        }
+    }
+});
+
+app.MapGet("problemN+1WithoutLazyLoading", async (MyBoardsContext db) =>
+{
+    var users = await db.Users
+            .Include(u => u.Address)
+            //.Include(u => u.Comments) //problem n+1 solve
+            .Where(u => u.Address.Country == "Albania")
+            .ToListAsync();
+
+    foreach (var user in users)
+    {
+        var userComments = db.Comments.Where(c => c.AuthorId == user.Id).ToList();
+        //var userComments = user.Comments; //problem n+1 solve
+        foreach (var comments in userComments)
+        {
+            //Process(comment);
+        }
+    }
 });
 
 app.Run();
