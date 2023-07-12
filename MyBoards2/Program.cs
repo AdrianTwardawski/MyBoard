@@ -1,13 +1,18 @@
-﻿using Microsoft.AspNetCore.Http.Json;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyBoards2;
 using MyBoards2.Dto;
 using MyBoards2.Entities;
+using MyBoards2.Sieve;
+using Sieve.Models;
+using Sieve.Services;
 using System.Linq.Expressions;
 using System.Text.Json.Serialization;
+using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddScoped<ISieveProcessor, ApplicationSieveProcessor>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -551,6 +556,33 @@ app.MapGet("problemN+1WithoutLazyLoading", async (MyBoardsContext db) =>
             //Process(comment);
         }
     }
+});
+
+app.MapPost("sieve", async ([FromBody] SieveModel query, ISieveProcessor sieveProcessor, MyBoardsContext db) =>
+{
+    var epics = db.Epics
+        .Include(e => e.Author)
+        .AsQueryable();
+
+    var dtos = await sieveProcessor
+        .Apply(query, epics)
+        .Select(e => new EpicDto()
+        {
+            Id = e.Id,
+            Area = e.Area,
+            Priority = e.Priority,
+            StartDate = e.StartDate,
+            AuthorFullName = e.Author.FullName
+        })
+        .ToListAsync();
+
+    var totalCount = await sieveProcessor
+        .Apply(query, epics, applyPagination: false, applySorting: false)
+        .CountAsync();
+
+    var result = new PagedResult<EpicDto>(dtos, totalCount, query.PageSize.Value, query.Page.Value);
+
+    return result;
 });
 
 app.Run();
